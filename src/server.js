@@ -70,7 +70,7 @@ app.post('/terminals/:pid/size', function (req, res) {
 });
 
 app.ws('/terminals/:pid', function (ws, req) {
-  console.log("Req hit the app.ws from",ws);
+
   var term = terminals[parseInt(req.params.pid, 10)];
 
   if (!term) {

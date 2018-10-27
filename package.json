@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "express-ws": "^4.0.0",
+    "node-cmd": "^3.0.0",
     "node-pty": "^0.7.8",
     "react": "^16.6.0",
     "react-dom": "^16.6.0",

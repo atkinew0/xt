@@ -1,5 +1,6 @@
 /* eslint-disable no-use-before-define */
 import React from 'react';
+import WordBox from './WordBox';
 import PropTypes from 'prop-types';
 import { Terminal } from 'xterm';
 // import * as attach from 'xterm/lib/addons/attach/attach';
@@ -8,6 +9,9 @@ import * as fit from 'xterm/lib/addons/fit/fit';
 import * as fullscreen from 'xterm/lib/addons/fullscreen/fullscreen';
 import * as search from 'xterm/lib/addons/search/search';
 import * as winptyCompat from 'xterm/lib/addons/winptyCompat/winptyCompat';
+
+var parser = require('./parseCom')
+parser.init();
 
 //import getId from '../helpers/getId';
 
@@ -30,7 +34,7 @@ export default class ReactTerminal extends React.Component {
     this.interval = null;
     this.fontSize = 16;
     this.state = {
-      command: ''
+      command: []
     };
   }
   componentDidMount() {
@@ -40,7 +44,7 @@ export default class ReactTerminal extends React.Component {
       fontSize: this.fontSize
     });
 
-    this.term.open(document.querySelector(`#${ this.elementId }`));
+    this.term.open(document.getElementById('terminal-container'));
     this.term.winptyCompatInit();
     this.term.fit();
     this.term.focus();
@@ -49,8 +53,16 @@ export default class ReactTerminal extends React.Component {
       if (!this.pid) return;
       fetch(`http://${ HOST }/terminals/${ this.pid }/size?cols=${ cols }&rows=${ rows }`, { method: 'POST' });
     });
-    this.term.on('data',function(data) {
-      console.log("terminal was emitted data",data);
+    this.term.on('key', (key) => {
+      console.log("State starting is",this.state.command);
+      console.log(key);
+      parser.addChar(key);
+      let command  = parser.checkBuffer();
+      console.log("Command after checkBuffer",command);
+      if(command){
+        console.log("Parser sent back command,", command);
+        this.setState( { command: [...this.state.command, command] } );
+      }
     });
     this.term.decreaseFontSize = () => {
       this.term.setOption('fontSize', --this.fontSize);
@@ -90,44 +102,47 @@ export default class ReactTerminal extends React.Component {
     //   this.term.write(key);
     // })
 
-    this.term.textarea.onkeydown = e => {
-      console.log(e.keyCode, e.shiftKey, e.ctrlKey, e.altKey);
-      // ctrl + shift + metakey + +
-      if ((e.keyCode === 187 || e.keyCode === 61) && e.shiftKey && e.ctrlKey && e.altKey) {
-        this.term.setOption('fontSize', ++this.fontSize);
-        this.term.fit();
-      }
-      // ctrl + shift + metakey + -
-      if ((e.keyCode === 189 || e.keyCode === 173) && e.shiftKey && e.ctrlKey && e.altKey) {
-        this.term.setOption('fontSize', --this.fontSize);
-        this.term.fit();
-      }
-      // ctrl + shift + metakey + v
-      if (e.keyCode === 86 && e.shiftKey && e.ctrlKey && e.altKey) {
-        this.props.options.splitVertical && this.props.options.splitVertical();
-      }
-      // ctrl + shift + metakey + h
-      if (e.keyCode === 72 && e.shiftKey && e.ctrlKey && e.altKey) {
-        this.props.options.splitHorizontal && this.props.options.splitHorizontal();
-      }
-      // ctrl + shift + metakey + w
-      if (e.keyCode === 87 && e.shiftKey && e.ctrlKey && e.altKey) {
-        this.props.options.close && this.props.options.close();
-      }
-    };
+    // this.term.textarea.onkeydown = e => {
+    //   console.log(e.keyCode, e.shiftKey, e.ctrlKey, e.altKey);
+    //   // ctrl + shift + metakey + +
+    //   if ((e.keyCode === 187 || e.keyCode === 61) && e.shiftKey && e.ctrlKey && e.altKey) {
+    //     this.term.setOption('fontSize', ++this.fontSize);
+    //     this.term.fit();
+    //   }
+    //   // ctrl + shift + metakey + -
+    //   if ((e.keyCode === 189 || e.keyCode === 173) && e.shiftKey && e.ctrlKey && e.altKey) {
+    //     this.term.setOption('fontSize', --this.fontSize);
+    //     this.term.fit();
+    //   }
+    //   // ctrl + shift + metakey + v
+    //   if (e.keyCode === 86 && e.shiftKey && e.ctrlKey && e.altKey) {
+    //     this.props.options.splitVertical && this.props.options.splitVertical();
+    //   }
+    //   // ctrl + shift + metakey + h
+    //   if (e.keyCode === 72 && e.shiftKey && e.ctrlKey && e.altKey) {
+    //     this.props.options.splitHorizontal && this.props.options.splitHorizontal();
+    //   }
+    //   // ctrl + shift + metakey + w
+    //   if (e.keyCode === 87 && e.shiftKey && e.ctrlKey && e.altKey) {
+    //     this.props.options.close && this.props.options.close();
+    //   }
+    // };
   }
   componentWillUnmount() {
     clearTimeout(this.interval);
   }
 
-  handleClick = (event) => {
-    console.log("keydown on the div",event.key);
-    this.term.write(event.key);
-  }
+ 
   render() {
-    return <div  style={{
-      position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'
-    }}><textarea onKeyDown={this.handleClick}></textarea></div>;
+    return (
+      <div>
+        <WordBox words={this.state.command}/>
+    <div id={"terminal-container"}  style={{
+      float:'left', top: 0, left: 0, width: '80', height: '100%'
+    }}></div>;
+    <WordBox />
+    </div>
+    )
   }
 
 
