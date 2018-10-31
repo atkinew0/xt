@@ -1,6 +1,12 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function attach(term, socket, bidirectional, buffered) {
+function attach(term, socket, bidirectional, buffered, callback) {
+  let command = "";
+
+  term._getCommand = function(){
+    return command;
+  }
+
   bidirectional = (typeof bidirectional === 'undefined') ? true : bidirectional;
   term.socket = socket;
   term._flushBuffer = function () {
@@ -33,6 +39,26 @@ function attach(term, socket, bidirectional, buffered) {
     if (buffered) {
       term._pushToBuffer(str || ev.data);
     } else {
+      //this is where to monkey with term writes
+      //in particular by checking for the echo pattern and somehow sending command to ReactXterm
+      //like maybe through a callback term.attach(socket, callback)
+      console.log("About to write to term in attach",ev.data);
+      let tokens = ev.data.split(" ");
+      console.log("tokens",tokens)
+      let comp = [];
+      for(let i = 0; i < tokens.length; i++){
+        if(tokens[i].indexOf("echo") > -1 ){
+          comp = tokens[i+1];
+        }
+      }
+      if(comp){
+        if(comp.indexOf("\r")> -1){
+          comp = comp.split("\r")[0];
+          console.log("Parsed commands to",comp);
+          command = comp;
+        }
+      }
+      
       term.write(str || ev.data);
     }
   };
@@ -40,6 +66,7 @@ function attach(term, socket, bidirectional, buffered) {
     if (socket.readyState !== 1) {
       return;
     }
+    
     let encoded = encodeURI(data);
 
     if (encoded === '%1B%5B1;11D') return;

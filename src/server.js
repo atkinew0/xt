@@ -5,6 +5,18 @@ const express = require('express');
 const app = express();
 const pty = require('node-pty');
 const argv = require('yargs').argv;
+const mongoose = require('mongoose');
+const keys = require('../config/keys.js');
+const { Schema } = mongoose;
+
+const questionSchema = new Schema({
+   question:{
+       id:Number,
+       prompt:String,
+       answer:String,
+       answered:Boolean
+   }
+});
 
 const port = argv.port || 3001;
 const host = '127.0.0.1';
@@ -34,7 +46,25 @@ app.use(function (req, res, next) {
 });
 app.use('/', express.static(__dirname + '/../build'));
 
+mongoose.connect(keys.mongoCredentials);
+const mongoLevel = mongoose.model('question', questionSchema,'levels');
+
 require('express-ws')(app);
+
+app.get("/api/level/:levelNum", function(req,res) {
+  const levelNum = parseInt(req.params.levelNum);
+
+  console.log("/api/level/:level get route hit level",levelNum);
+
+  
+  mongoLevel.find({}, function(err, questions){
+    if(err) console.log("Mongo error",err);
+    console.log(questions);
+    res.send(questions);
+    //here want to send back the questions as json to the react component that fetched it
+  });
+  
+});
 
 app.post('/terminals', function (req, res) {
   let shell = argv.shell && argv.shell !== '' ? argv.shell : process.platform === 'win32' ? 'cmd.exe' : 'bash';

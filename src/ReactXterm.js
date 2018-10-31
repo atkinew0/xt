@@ -1,6 +1,8 @@
 /* eslint-disable no-use-before-define */
 import React from 'react';
 import WordBox from './WordBox';
+import ControlBox from './ControlBox';
+import Prompt from './Prompt';
 import PropTypes from 'prop-types';
 import { Terminal } from 'xterm';
 // import * as attach from 'xterm/lib/addons/attach/attach';
@@ -9,6 +11,7 @@ import * as fit from 'xterm/lib/addons/fit/fit';
 import * as fullscreen from 'xterm/lib/addons/fullscreen/fullscreen';
 import * as search from 'xterm/lib/addons/search/search';
 import * as winptyCompat from 'xterm/lib/addons/winptyCompat/winptyCompat';
+import { runInThisContext } from 'vm';
 
 var parser = require('./parseCom')
 parser.init();
@@ -29,12 +32,17 @@ export default class ReactTerminal extends React.Component {
   constructor(props) {
     super(props);
 
+    this.buffer = [];
+
     this.elementId = `terminal_1`;
     this.failures = 0;
     this.interval = null;
     this.fontSize = 16;
     this.state = {
-      command: []
+      command: [],
+      prompt: "prompt",
+      questions: [],
+      nextQuestion:0
     };
   }
   componentDidMount() {
@@ -49,21 +57,50 @@ export default class ReactTerminal extends React.Component {
     this.term.fit();
     this.term.focus();
     
-    this.term.on('resize', ({ cols, rows }) => {
-      if (!this.pid) return;
-      fetch(`http://${ HOST }/terminals/${ this.pid }/size?cols=${ cols }&rows=${ rows }`, { method: 'POST' });
-    });
+    // this.term.on('resize', ({ cols, rows }) => {
+    //   if (!this.pid) return;
+    //   fetch(`http://${ HOST }/terminals/${ this.pid }/size?cols=${ cols }&rows=${ rows }`, { method: 'POST' });
+    // });
     this.term.on('key', (key) => {
+
+     
       console.log("State starting is",this.state.command);
-      console.log(key);
+      console.log(key.charCodeAt(0));
       parser.addChar(key);
-      let command  = parser.checkBuffer();
-      console.log("Command after checkBuffer",command);
-      if(command){
-        console.log("Parser sent back command,", command);
-        this.setState( { command: [...this.state.command, command] } );
+      let command;
+      let comm;
+
+      if( key.charCodeAt())
+
+      if(key.charCodeAt(0) === 13){
+        console.log("Keycode 13, checking answer and command");
+        this.checkAnswer(parser.repeat().join(""));
+        
+        //this.term.writeln("echo !!");
+        setTimeout(() => this.term._sendData("echo !!\r", 100));
+        setTimeout(() => {
+          comm = this.term._getCommand();
+          console.log("Command in ReactXterm of ", comm);
+          command  = parser.checkCommand(comm);
+          parser.clear();
+          console.log('Checkcommand returned', command);
+
+          if(command){
+            console.log("Parser sent back command", command);
+            
+            if(!this.state.command.includes(command)){
+              this.setState( { command: [...this.state.command, command] } );
+            }
+          }
+        }, 500);
+        
+        
       }
+      
+      //console.log("Command after checkBuffer",command);
+     
     });
+
     this.term.decreaseFontSize = () => {
       this.term.setOption('fontSize', --this.fontSize);
       this.term.fit();
@@ -74,9 +111,9 @@ export default class ReactTerminal extends React.Component {
     };
     this._connectToServer();
 
-    listenToWindowResize(() => {
-      this.term.fit();
-    });
+    // listenToWindowResize(() => {
+    //   this.term.fit();
+    // });
     this.term.fit();
 
     // this.term._core.register(this.term.addDisposableListener('key', (key, ev) => {
@@ -132,15 +169,60 @@ export default class ReactTerminal extends React.Component {
     clearTimeout(this.interval);
   }
 
+
+  handleQuestions = (questionsArray) => {
+    //this will be called from controlbox which does a db query to get questions
+  
+    this.setState({questions:questionsArray}, this.updatePrompt);
+    
+  }
+
+  updatePrompt(){
+    //sets the top prompt to be whatever the first unanswered question is
+    let questions = this.state.questions;
+    console.log("Here in updatePrompt the questions are",questions, questions.length, typeof questions);
+
+    for(let i = 0; i < questions.length;i++){
+      if(questions[i].answered == false){
+        console.log("QUestions i answered was false, setting prompt to that",questions[i]);
+        this.setState({prompt:questions[i].prompt, nextQuestion:questions[i].id });
+  
+      }
+    }
+  }
+
+  checkAnswer(answer){
+    //this method finds the first unanswered question in state and matches answer against it
+
+    answer = answer.replace(/[^\x20-\x7E]/g, '');
+    console.log("checking answer", answer, " id question",this.state.nextQuestion)
+    let questions = this.state.questions;
+
+    
+    questions.forEach(question => {
+      if(question.id === this.state.nextQuestion){
+        if(question.answer.trim() == answer.trim()){
+          console.log("Answer matched question.answer");
+          question.answered = true;
+          this.setState({questions:questions}, this.updatePrompt);
+        }
+      } 
+    });
+
+    
+    console.log("Now state of questions is", this.state.questions);
+  }
+
  
   render() {
     return (
       <div>
+        <Prompt prompt={this.state.prompt}/>
         <WordBox words={this.state.command}/>
     <div id={"terminal-container"}  style={{
       float:'left', top: 0, left: 0, width: '80', height: '100%'
     }}></div>;
-    <WordBox />
+    <ControlBox questionsCall={this.handleQuestions} words={["Level 1"]}/>
     </div>
     )
   }
@@ -150,7 +232,6 @@ export default class ReactTerminal extends React.Component {
   _connectToServer() {
 
     const theReq = `http://${ HOST }/terminals/?cols=${ this.term.cols }&rows=${ this.term.rows }`;
-    console.log("The request we are making is",theReq);
 
     fetch(
       theReq,
@@ -174,7 +255,7 @@ export default class ReactTerminal extends React.Component {
           console.log("The socket at",SOCKET_URL+processId);
           console.log("Socket",this.socket);
           this.socket.onopen = () => {
-            this.term.attach(this.socket);
+            this.term.attach(this.socket, true , false, (comp) => { console.log("Callback" ,comp)} );
             this.term.writeln("Welcome to the beginning of mastershell");
           };
           this.socket.onclose = () => {

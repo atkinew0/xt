@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "css-loader": "^1.0.1",
     "express-ws": "^4.0.0",
+    "mongoose": "^5.3.7",
     "node-cmd": "^3.0.0",
     "node-pty": "^0.7.8",
     "react": "^16.6.0",
