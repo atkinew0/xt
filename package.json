@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "cors": "^2.8.4",
     "css-loader": "^1.0.1",
     "express-ws": "^4.0.0",
     "mongoose": "^5.3.7",

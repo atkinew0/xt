@@ -5,18 +5,12 @@ const express = require('express');
 const app = express();
 const pty = require('node-pty');
 const argv = require('yargs').argv;
+const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const keys = require('../config/keys.js');
+//const question = require('../models/level');
+const cors = require('cors');
 const { Schema } = mongoose;
-
-const questionSchema = new Schema({
-   question:{
-       id:Number,
-       prompt:String,
-       answer:String,
-       answered:Boolean
-   }
-});
 
 const port = argv.port || 3001;
 const host = '127.0.0.1';
@@ -26,6 +20,35 @@ const ALLOWED_ORIGINS = [
   'home.localhost',
   'chrome-extension://'
 ];
+
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+const questionSchema = new Schema({
+      id:{
+        type:Number,
+        required:true
+      },
+      prompt:{
+        type:String,
+        required:true
+      },
+      answer:{
+        type:String,
+        required:true
+      },
+      answered:{
+        type:Boolean,
+        required:true
+      },
+      level:{
+        type:Number,
+        required:true
+      }
+});
+
+const Question = mongoose.model('levels',questionSchema);
 
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -47,23 +70,56 @@ app.use(function (req, res, next) {
 app.use('/', express.static(__dirname + '/../build'));
 
 mongoose.connect(keys.mongoCredentials);
-const mongoLevel = mongoose.model('question', questionSchema,'levels');
 
 require('express-ws')(app);
 
-app.get("/api/level/:levelNum", function(req,res) {
-  const levelNum = parseInt(req.params.levelNum);
 
-  console.log("/api/level/:level get route hit level",levelNum);
+app.get("/api/level/:levelnum", function(req,res) {
+  const levelnum = parseInt(req.params.levelnum);
 
-  
-  mongoLevel.find({}, function(err, questions){
+  console.log("/api/level/:level get route hit level",levelnum);
+
+
+  Question.find({level:levelnum}, function(err, questions){
     if(err) console.log("Mongo error",err);
     console.log(questions);
     res.send(questions);
     //here want to send back the questions as json to the react component that fetched it
   });
   
+});
+
+app.post("/api/level/:levelnum", function(req,res) {
+  const levelNum = parseInt(req.params.levelnum);
+
+  // const toUpdate = new Question({
+  //   id: 1,
+  //   prompt:"the prompt",
+  //   answer:"the answer",
+  //   answered:false,
+  //   level:0
+  // });
+
+  // console.log("to update",toUpdate);
+
+  // toUpdate.save(function(err){
+  //   if(err) console.log(err);
+  //   else console.log("saved");
+  // })
+
+  Question.create(
+    {
+      id: 1,
+      prompt:"the prompt",
+      answer:"the answer",
+      answered:false,
+      level:0
+    }
+  ).then(question => {
+    res.json(question);
+  })
+
+
 });
 
 app.post('/terminals', function (req, res) {

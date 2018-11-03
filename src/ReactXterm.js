@@ -38,7 +38,9 @@ export default class ReactTerminal extends React.Component {
     this.failures = 0;
     this.interval = null;
     this.fontSize = 16;
+
     this.state = {
+      lastEntry:"",
       command: [],
       prompt: "prompt",
       questions: [],
@@ -73,25 +75,35 @@ export default class ReactTerminal extends React.Component {
       if( key.charCodeAt())
 
       if(key.charCodeAt(0) === 13){
-        console.log("Keycode 13, checking answer and command");
+        console.log("Printing term",this.term);
         this.checkAnswer(parser.repeat().join(""));
-        
+        this.setState( {lastEntry:parser.repeat().join("")}, function(){
+          console.log("Set state lastEntry to",this.state.lastEntry);
+        } );
+
         //this.term.writeln("echo !!");
         setTimeout(() => this.term._sendData("echo !!\r", 100));
         setTimeout(() => {
           comm = this.term._getCommand();
           console.log("Command in ReactXterm of ", comm);
           command  = parser.checkCommand(comm);
-          parser.clear();
+          
           console.log('Checkcommand returned', command);
 
           if(command){
-            console.log("Parser sent back command", command);
             
-            if(!this.state.command.includes(command)){
-              this.setState( { command: [...this.state.command, command] } );
+            let commandObject = { command: command,
+            typed: parser.repeat().join("") };
+
+            console.log("Command obj putitng into state", commandObject);
+            
+            if(!this.state.command.includes(commandObject)){
+             
+              this.setState( { command: [...this.state.command, commandObject] } );
             }
+            
           }
+          parser.clear();
         }, 500);
         
         
@@ -172,7 +184,7 @@ export default class ReactTerminal extends React.Component {
 
   handleQuestions = (questionsArray) => {
     //this will be called from controlbox which does a db query to get questions
-  
+    this.setState({nextQuestion: 1});
     this.setState({questions:questionsArray}, this.updatePrompt);
     
   }
@@ -180,12 +192,16 @@ export default class ReactTerminal extends React.Component {
   updatePrompt(){
     //sets the top prompt to be whatever the first unanswered question is
     let questions = this.state.questions;
-    console.log("Here in updatePrompt the questions are",questions, questions.length, typeof questions);
+   
+    console.log("Next question",this.state.nextQuestion," and ",questions.length)
+    if(this.state.nextQuestion >= questions.length){
+      this.setState({prompt:"Level Complete!"});
+    }
 
     for(let i = 0; i < questions.length;i++){
-      if(questions[i].answered == false){
-        console.log("QUestions i answered was false, setting prompt to that",questions[i]);
-        this.setState({prompt:questions[i].prompt, nextQuestion:questions[i].id });
+      if(questions[i].id == this.state.nextQuestion){
+        //get the question matching nextQuestion and set prompt to that
+        this.setState({prompt:questions[i].prompt});
   
       }
     }
@@ -204,7 +220,7 @@ export default class ReactTerminal extends React.Component {
         if(question.answer.trim() == answer.trim()){
           console.log("Answer matched question.answer");
           question.answered = true;
-          this.setState({questions:questions}, this.updatePrompt);
+          this.setState({questions:questions, nextQuestion: this.state.nextQuestion + 1}, this.updatePrompt);
         }
       } 
     });
@@ -218,11 +234,11 @@ export default class ReactTerminal extends React.Component {
     return (
       <div>
         <Prompt prompt={this.state.prompt}/>
-        <WordBox words={this.state.command}/>
-    <div id={"terminal-container"}  style={{
-      float:'left', top: 0, left: 0, width: '80', height: '100%'
-    }}></div>;
-    <ControlBox questionsCall={this.handleQuestions} words={["Level 1"]}/>
+        <WordBox lastEntry={this.state.lastEntry} words={this.state.command}/>
+        <div id={"terminal-container"}  style={{
+        float:'left', top: 0, left: 0, width: '80', height: '100%'
+        }}></div>;
+        <ControlBox questionsCall={this.handleQuestions} words={["Level 1"]}/>
     </div>
     )
   }
