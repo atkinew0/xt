@@ -28,6 +28,24 @@ const PORT = '3001';
 const HOST = `127.0.0.1:${ PORT }`;
 const SOCKET_URL = `ws://${ HOST }/terminals/`;
 
+const containerStyle ={
+  position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)'
+}
+
+//todo refactor levels elsewhere to not clutter reactxterm
+//also poss to get dynamically from DB but seems just as well to hardcode levels for now
+const levels = [
+  
+    {name:"Level 1", number:1, finished:false, selected:false},
+    {name:"Level 2", number:2, finished:false, selected:false},
+    {name:"Level 3", number:3, finished:false, selected:false}
+    
+]
+
 export default class ReactTerminal extends React.Component {
   constructor(props) {
     super(props);
@@ -42,15 +60,18 @@ export default class ReactTerminal extends React.Component {
     this.state = {
       lastEntry:"",
       command: [],
-      prompt: "prompt",
+      prompt:"prompt",
+      promptColor:'#8585ad',
       questions: [],
-      nextQuestion:0
+      levels:levels,
+      nextQuestion:0,
     };
   }
+
   componentDidMount() {
     this.term = new Terminal({
       cursorBlink: true,
-      rows: 24,
+      rows: 40,
       fontSize: this.fontSize
     });
 
@@ -64,47 +85,73 @@ export default class ReactTerminal extends React.Component {
     //   fetch(`http://${ HOST }/terminals/${ this.pid }/size?cols=${ cols }&rows=${ rows }`, { method: 'POST' });
     // });
     this.term.on('key', (key) => {
-
-     
-      console.log("State starting is",this.state.command);
-      console.log(key.charCodeAt(0));
-      parser.addChar(key);
+      
       let command;
-      let comm;
+      console.log("Got key charcode",key.charCodeAt(0))
 
-      if( key.charCodeAt())
+      if( key.charCodeAt(0) === 127){
+        //implement backspace textarea input deletion
+        let currentText = this.term.textarea.value;
+        console.log("on a backspace remove");
+        if(currentText.length > 0){
+          currentText = currentText.slice(0,-1);
+        }
+
+        this.term.textarea.value = currentText;
+        console.log("textarea after slice",this.term.textarea.value)
+
+      }
 
       if(key.charCodeAt(0) === 13){
-        console.log("Printing term",this.term);
-        this.checkAnswer(parser.repeat().join(""));
-        this.setState( {lastEntry:parser.repeat().join("")}, function(){
-          console.log("Set state lastEntry to",this.state.lastEntry);
-        } );
+        
+        if(this.state.questions.length > 0){
+          //only check answer if there are questions loaded
+          this.checkAnswer(this.term.textarea.value);
+        }
+        command = parser.check(this.term.textarea.value);
+        console.log("!Checking textarea",this.term.textarea.value)
+        console.log("Command returned as legit linux comand",command);
+        
+
+        if(command){
+
+          this._makeCommand(command);
+          // console.log("Command true so update",command)
+          // let commandObject = { 
+          //                       command: command,
+          //                       typed: this.term.textarea.value       };
+
+          //  if(!this.state.command.includes(commandObject)){
+          //    this.setState( {command: [...this.state.command, commandObject] });
+          //  }
+        }
+
+        this.term.textarea.value ="";
 
         //this.term.writeln("echo !!");
-        setTimeout(() => this.term._sendData("echo !!\r", 100));
-        setTimeout(() => {
-          comm = this.term._getCommand();
-          console.log("Command in ReactXterm of ", comm);
-          command  = parser.checkCommand(comm);
+        // setTimeout(() => this.term._sendData("echo !!\r", 100));
+        // setTimeout(() => {
+        //   comm = this.term._getCommand();
+        //   console.log("Command in ReactXterm of ", comm);
+        //   command  = parser.checkCommand(comm);
           
-          console.log('Checkcommand returned', command);
+        //   console.log('Checkcommand returned', command);
 
-          if(command){
+        //   if(command){
             
-            let commandObject = { command: command,
-            typed: parser.repeat().join("") };
+        //     let commandObject = { command: command,
+        //     typed: parser.repeat().join("") };
 
-            console.log("Command obj putitng into state", commandObject);
+        //     console.log("Command obj putitng into state", commandObject);
             
-            if(!this.state.command.includes(commandObject)){
+        //     if(!this.state.command.includes(commandObject)){
              
-              this.setState( { command: [...this.state.command, commandObject] } );
-            }
+        //       this.setState( { command: [...this.state.command, commandObject] } );
+        //     }
             
-          }
-          parser.clear();
-        }, 500);
+        //   }
+        //   parser.clear();
+        // }, 500);
         
         
       }
@@ -181,9 +228,33 @@ export default class ReactTerminal extends React.Component {
     clearTimeout(this.interval);
   }
 
+  flashPrompt(correct){
+    if(correct){
+      this.setState({promptColor:'green'});
+    }
+    else{
+      this.setState({promptColor:'red'});
+    }
+
+    setTimeout(() => { this.setState({promptColor:'#8585ad'} ) }, 250);
+  }
 
   handleQuestions = (questionsArray) => {
     //this will be called from controlbox which does a db query to get questions
+    let levelSelected;
+    if(questionsArray){
+      levelSelected = questionsArray[0].level;
+    }
+    
+    let levels = this.state.levels.map(elem => {
+      if (elem.number == levelSelected)
+          elem.selected = true;
+      else
+          elem.selected = false;
+      return elem;
+    });
+    this.setState({levels:levels});
+
     this.setState({nextQuestion: 1});
     this.setState({questions:questionsArray}, this.updatePrompt);
     
@@ -196,6 +267,16 @@ export default class ReactTerminal extends React.Component {
     console.log("Next question",this.state.nextQuestion," and ",questions.length)
     if(this.state.nextQuestion >= questions.length){
       this.setState({prompt:"Level Complete!"});
+
+      let currentLevel = this.state.questions[0].level;
+      let levels = this.state.levels.map(elem =>{
+        if(elem.number == currentLevel)
+          elem.finished = true;
+
+        return elem;
+      });
+      this.setState({levels:levels});
+      
     }
 
     for(let i = 0; i < questions.length;i++){
@@ -209,10 +290,18 @@ export default class ReactTerminal extends React.Component {
 
   checkAnswer(answer){
     //this method finds the first unanswered question in state and matches answer against it
-
-    answer = answer.replace(/[^\x20-\x7E]/g, '');
+    let pattern = '/^[a-z0-9!"#$%&-><= ]/i'
+    //answer = answer.replace(/[^\x20-\x7E]/g, '');
+    if(answer.match(pattern)>-1)
+       console.log("Answer met test for non PC",answer.match(pattern))
+    else{
+      console.log("Pattern failed to match greater tha -1")
+    }   
+    console.log("Console logging textarea", this.term.textarea.value);
+    answer = answer.replace(pattern," ");
     console.log("checking answer", answer, " id question",this.state.nextQuestion)
     let questions = this.state.questions;
+    let correct = false;
 
     
     questions.forEach(question => {
@@ -220,25 +309,30 @@ export default class ReactTerminal extends React.Component {
         if(question.answer.trim() == answer.trim()){
           console.log("Answer matched question.answer");
           question.answered = true;
+          correct = true;
           this.setState({questions:questions, nextQuestion: this.state.nextQuestion + 1}, this.updatePrompt);
         }
       } 
     });
 
-    
-    console.log("Now state of questions is", this.state.questions);
+    this.flashPrompt(correct);
+
   }
 
+  focusTerm =() => {
+    this.term.focus();
+  }
  
   render() {
+
     return (
-      <div>
-        <Prompt prompt={this.state.prompt}/>
+      <div style={containerStyle}>
+        <Prompt color={this.state.promptColor} prompt={this.state.prompt}/>
         <WordBox lastEntry={this.state.lastEntry} words={this.state.command}/>
         <div id={"terminal-container"}  style={{
         float:'left', top: 0, left: 0, width: '80', height: '100%'
-        }}></div>;
-        <ControlBox questionsCall={this.handleQuestions} words={["Level 1"]}/>
+        }}></div>
+        <ControlBox focus={this.focusTerm} questionsCall={this.handleQuestions} words={this.state.levels}/>
     </div>
     )
   }
@@ -296,12 +390,50 @@ export default class ReactTerminal extends React.Component {
       }
     );
   }
+  
   _tryAgain() {
     clearTimeout(this.interval);
     this.interval = setTimeout(() => {
       this._connectToServer();
     }, 2000);
   }
+
+_makeCommand(command){
+  //if command is new command make a new entry for that, otherwise update its typed array to hold its exact
+  //input ie ls, ls-al, ls /temp etc etc...
+  console.log("Command true so update",command);
+
+  let typed = this.term.textarea.value;
+
+  //check if entire command input is a repeat, ie already seen exact entry ls -al
+  let repeat = this.state.command.some( commandObj =>  commandObj.typed === typed );
+
+  if(!repeat){
+      let seenCommand = this.state.command.some(commandObj => commandObj.command === command);
+
+      if(!seenCommand){
+          let commandObject = { 
+            command: command,
+            typed: [this.term.textarea.value]     };
+
+            this.setState( {command: [...this.state.command, commandObject] });
+      }
+      else {
+        let updateCommands = this.state.command;
+
+        updateCommands.forEach(commandObj => {
+          if(commandObj.command === command){
+            commandObj.typed.push(typed);
+          }
+        });
+
+        // let update = this.state.command.find(commandObj => commandObj.command === command );
+        // update.typed.push(typed);
+        this.setState( {command: [...updateCommands] });
+      }
+  }
+
+}
 };
 
 ReactTerminal.propTypes = {

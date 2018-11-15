@@ -91,34 +91,56 @@ app.get("/api/level/:levelnum", function(req,res) {
 
 app.post("/api/level/:levelnum", function(req,res) {
   const levelNum = parseInt(req.params.levelnum);
+  console.log("Hit post for q");
+  console.log(req.body);
 
-  // const toUpdate = new Question({
-  //   id: 1,
-  //   prompt:"the prompt",
-  //   answer:"the answer",
-  //   answered:false,
-  //   level:0
-  // });
-
-  // console.log("to update",toUpdate);
-
-  // toUpdate.save(function(err){
-  //   if(err) console.log(err);
-  //   else console.log("saved");
-  // })
+  let nextId = 0;
+  
+  //always get current highest question id for that level in the DB so we can add next id
+Question.find({level:levelNum}).sort('-id').exec(function(err, document){
+  console.log("Found the latest id doc ",document);
+  nextId = document[0].id +1;
+  console.log("Next id is",nextId);
 
   Question.create(
-    {
-      id: 1,
-      prompt:"the prompt",
-      answer:"the answer",
-      answered:false,
-      level:0
-    }
-  ).then(question => {
-    res.json(question);
-  })
+        {
+          id: nextId,
+          prompt:req.body.prompt,
+          answer:req.body.answer,
+          answered:false,
+          level:req.body.level
+        }
+      ).then(question => {
+        res.json(question);
+      });
+  
+});
 
+  // Question.find({level:levelNum})
+  // .sort('id')
+  // .exec( function(err, member){
+  //   if(err) console.log(err);
+  //   console.log("Got members",member);
+
+  //   nextId =  member.id;
+  //   console.log("Next id is",nextId);
+
+  //   Question.create(
+  //     {
+  //       id: nextId,
+  //       prompt:req.body.prompt,
+  //       answer:req.body.answer,
+  //       answered:false,
+  //       level:req.body.level
+  //     }
+  //   ).then(question => {
+  //     res.json(question);
+  //   });
+
+
+  // })
+
+  
 
 });
 
@@ -176,7 +198,7 @@ app.ws('/terminals/:pid', function (ws, req) {
     }
   });
   ws.on('message', function (msg) {
-    console.log("Message to write")
+    
     term.write(msg);
   });
   ws.on('close', function () {
