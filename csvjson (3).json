@@ -1,0 +1,42 @@
+[
+  {
+    "level": 3,
+    "prompt": "copy file test1 to a new file called test2",
+    "answer": "cp test1 test2",
+    "answer2": "",
+    "answered": "FALSE",
+    "id": 1
+  },
+  {
+    "level": 3,
+    "prompt": "copy contents of directory dir1 to new directory dir2",
+    "answer": "cp -r dir1 dir2",
+    "answer2": "cp -R dir1 dir2",
+    "answered": "FALSE",
+    "id": 2
+  },
+  {
+    "level": 3,
+    "prompt": "copy all files inside dir1 into existing directory dir2",
+    "answer": "cp dir1/* dir2",
+    "answer2": "",
+    "answered": "FALSE",
+    "id": 3
+  },
+  {
+    "level": 3,
+    "prompt": "copy file test1 over existing file test2 only if test1 is newer than test2",
+    "answer": "cp -u test1 test2",
+    "answer2": "",
+    "answered": "FALSE",
+    "id": 4
+  },
+  {
+    "level": 3,
+    "prompt": "copy files test1 to test2 while displaying all lines copied",
+    "answer": "cp -v test1 test2",
+    "answer2": "",
+    "answered": "FALSE",
+    "id": 5
+  }
+]

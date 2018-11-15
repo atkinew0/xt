@@ -1,0 +1,367 @@
+/lib64/ld-linux-x86-64.so.2
+libc.so.6
+fflush
+__printf_chk
+setlocale
+mbrtowc
+strncmp
+optind
+strrchr
+dcgettext
+error
+__stack_chk_fail
+iswprint
+realloc
+abort
+_exit
+program_invocation_name
+__ctype_get_mb_cur_max
+calloc
+strlen
+ungetc
+memset
+__errno_location
+memcmp
+__fprintf_chk
+stdout
+lseek
+memcpy
+fclose
+malloc
+mbsinit
+__uflow
+nl_langinfo
+__ctype_b_loc
+getenv
+__freading
+stderr
+fscanf
+getopt_long
+fileno
+fwrite
+__fpending
+program_invocation_short_name
+fdopen
+__cxa_finalize
+bindtextdomain
+opterr
+strcmp
+__libc_start_main
+fseeko
+fputs_unlocked
+free
+__progname
+__progname_full
+__cxa_atexit
+quote_quoting_options
+Version
+_IO_stdin_used
+quoting_style_vals
+quoting_style_args
+exit_failure
+program_name
+version_etc_copyright
+GLIBC_2.3
+GLIBC_2.3.4
+GLIBC_2.14
+GLIBC_2.4
+GLIBC_2.2.5
+_ITM_deregisterTMCloneTable
+__gmon_start__
+_ITM_registerTMCloneTable
+%zX 
+%rX 
+%jX 
+%bX 
+%ZX 
+%RX 
+%JX 
+%BX 
+%:X 
+%2X 
+%*X 
+%"X 
+AWAVAUATA
+$H9,$
+H9,$
+ vHH
+[]A\A]A^A_
+=yU 
+5rU 
+=qU 
+D$x1
+\$0H
+\$@H
+T$PH
+D$ H
+D$(H
+D$8H
+D$HH
+D$XH
+={Q 
+={Q 
+AUATUSH
+[]A\A]
+[]A\A]
+AUATM
+)D$`
+)L$p
+D$(1
+D$(dH3
+[]A\A]
+=jO 
+Gt H
+AWAVE
+AUATI
+L$xH
+D$ H
+D$hH
+D$`dH
+D$HE1
+D$8D
+T$0L
+D$8D
+T$0I
+L$(L9
+t$HL
+\$@D
+D$8L
+L$0D
+D$8L
+t$ H
+t M9
+d$|1
+t/M9
+\$8D
+D$0D
+T$(D
+D$0L
+t-M9
+l$PH
+l$PI
+d$|E1
+D$(u-H
+D$@D
+T$8L
+D$@D
+T$8I
+L$0H
+\$~D
+D$}H
+D$8D
+t$@L
+l$pL
+\$0H
+T$0H
+L$(H
+|$8N
+,0L)
+\$~D
+t$@L
+l$pL
+\$0H
+t/M9
+t$@L
+l$pH
+t$xL
+D$(H
+T$0A
+[]A\A]A^A_
+D$HA
+D$hH
+D$`H
+\$HH
+\$0L
+\$~L
+t$@L
+l$ps&
+\$~D
+t$@L
+l$pL
+\$HH
+t$xL
+t$8D
+T$0H
+AWAVLc
+AUATI
+%s: 
+u(AWL
+T$(L
+L$<H
+T$(H
+t$0I
+[]A\A]A^A_
+ATUSH
+[]A\
+AWAVH
+AUATI
+L$(L
+8[]A\A]A^A_
+AWAVH
+AUATI
+s(AR1
+D$HH
+T$8A
+D$,H
+\$(M
+8[]A\A]A^A_
+T$81
+L$8dH3
+L$81
+T$8dH3
+D$81
+)D$ A
+t$8dH34%(
+T$81
+L$8dH3
+D$81
+)D$ t2H
+t$(H
+T$0H
+|$8dH3<%(
+AUATA
+[]A\A]
+AWAVAUATM
+AQAUATAWAVL
+L$0L
+([]A\A]A^A_
+[]A\A]A^A_H
+[]A\A]A^A_1
+[]A\A]A^A_
+([]A\A]A^A_
+ATAWAVL
+D$ H
+([]A\A]A^A_
+AUATAWAVL
+D$X1
+/wBA
+D$XdH3
+D$x1
+D$ L
+/wVD
+D$xdH3
+TUUUUUUUI
+SUUUUUUUH9
+AUATI
+[]A\A]
+ATUH
+t9[]A\
+[]A\
+8	[]A\
+AWAV
+AUATUSH
+[]A\A]A^A_
+charset.
+aliafA
+D$`H
+D$ H
+H+T$
+L+l$
+ATUSH
+u0[]A\
+[]A\
+G H9G(u
+ATUA
+[]A\
+AWAVA
+AUATL
+[]A\A]A^A_
+test invocation
+Multi-call invocation
+sha224sum
+sha2 utilities
+sha256sum
+sha384sum
+sha512sum
+%s online help: <%s>
+GNU coreutils
+/usr/share/locale
+David MacKenzie
+standard output
+Try '%s --help' for more information.
+Usage: %s [STRING]...
+  or:  %s OPTION
+Repeatedly output a line with all specified STRING(s), or 'y'.
+      --help     display this help and exit
+      --version  output version information and exit
+http://www.gnu.org/software/coreutils/
+Report %s translation bugs to <http://translationproject.org/team/>
+Full documentation at: <%s%s>
+or available locally via: info '(coreutils) %s%s'
+8.28
+write error
+%s: %s
+help
+version
+A NULL argv[0] was passed through an exec system call.
+/.libs/
+literal
+shell
+shell-always
+shell-escape
+shell-escape-always
+c-maybe
+clocale
+%s (%s) %s
+%s %s
+Written by %s.
+Written by %s and %s.
+Written by %s, %s, and %s.
+Report bugs to: %s
+bug-coreutils@gnu.org
+%s home page: <%s>
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Written by %s, %s, %s,
+and %s.
+Written by %s, %s, %s,
+%s, and %s.
+Written by %s, %s, %s,
+%s, %s, and %s.
+Written by %s, %s, %s,
+%s, %s, %s, and %s.
+Written by %s, %s, %s,
+%s, %s, %s, %s,
+and %s.
+Written by %s, %s, %s,
+%s, %s, %s, %s,
+%s, and %s.
+Written by %s, %s, %s,
+%s, %s, %s, %s,
+%s, %s, and others.
+General help using GNU software: <http://www.gnu.org/gethelp/>
+Copyright %s %d Free Software Foundation, Inc.
+memory exhausted
+POSIX
+ASCII
+/usr/lib/x86_64-linux-gnu
+CHARSETALIASDIR
+%50s %50s
+;*3$"
+e5f3d506ee103eae05db20aa18b81ee40e7962.debug
+.shstrtab
+.interp
+.note.ABI-tag
+.note.gnu.build-id
+.gnu.hash
+.dynsym
+.dynstr
+.gnu.version
+.gnu.version_r
+.rela.dyn
+.rela.plt
+.init
+.plt.got
+.text
+.fini
+.rodata
+.eh_frame_hdr
+.eh_frame
+.init_array
+.fini_array
+.data.rel.ro
+.dynamic
+.data
+.bss
+.gnu_debuglink
