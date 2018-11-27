@@ -3,19 +3,33 @@ const { Schema } = mongoose;
 
 
 const questionSchema = new Schema({
-    question:{
-        id:Number,
-        prompt:String,
-        answer:String,
-        answered:Boolean,
-        level:Number
+    id:{
+      type:Number,
+      required:true
+    },
+    prompt:{
+      type:String,
+      required:true
+    },
+    answer:{
+      type:String,
+      required:true
+    },
+    answer2:{
+
+    },
+    answered:{
+      type:Boolean,
+      required:true
+    },
+    level:{
+      type:Number,
+      required:true
     }
- });
+});
 
-const Question = mongoose.model('Question',questionSchema);
+const Question = mongoose.model('levels',questionSchema);
 
-module.export = {
-    Question:Question
-}
+module.exports = Question;
 //wont overwrite existing collections, just add if it does not exist
 //const mongoLevel = mongoose.model('question', questionSchema);

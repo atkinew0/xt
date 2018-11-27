@@ -22,7 +22,9 @@ export default class ControlBox extends React.Component {
        
         //when you click on Level x load in questions for that level
         
+        
         const theReq = `http://${ HOST }/api/level/${event.target.value}`;
+
         fetch(theReq, { method:'GET'}).then( res => {
             if(!res.ok) console.log(res.status);
 

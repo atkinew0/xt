@@ -8,7 +8,8 @@ const argv = require('yargs').argv;
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const keys = require('../config/keys.js');
-//const question = require('../models/level');
+const Question = require('../models/level');
+const DBEntry = require('../models/srs');
 const cors = require('cors');
 const { Schema } = mongoose;
 
@@ -25,30 +26,6 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-const questionSchema = new Schema({
-      id:{
-        type:Number,
-        required:true
-      },
-      prompt:{
-        type:String,
-        required:true
-      },
-      answer:{
-        type:String,
-        required:true
-      },
-      answered:{
-        type:Boolean,
-        required:true
-      },
-      level:{
-        type:Number,
-        required:true
-      }
-});
-
-const Question = mongoose.model('levels',questionSchema);
 
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -79,36 +56,76 @@ app.get("/api/level/:levelnum", function(req,res) {
 
   console.log("/api/level/:level get route hit level",levelnum);
 
-
-  Question.find({level:levelnum}, function(err, questions){
-    if(err) console.log("Mongo error",err);
-    console.log(questions);
-    res.send(questions);
-    //here want to send back the questions as json to the react component that fetched it
+  Question.find({level:levelnum}).sort('id').exec(function(err, document){
+    if(err) console.log(err);
+    console.log("Sorted questions",document)
+    res.send(document);
   });
+
+  // Question.find({level:levelnum}, function(err, questions){
+  //   if(err) console.log("Mongo error",err);
+  //   console.log(questions);
+  //   res.send(questions);
+  //   //here want to send back the questions as json to the react component that fetched it
+  // });
   
 });
 
-app.post("/api/level/:levelnum", function(req,res) {
+app.get('/api/srs',function(req,res){
+  //get all questions from srs collection then filter on due times already passed
+
+  DBEntry.find({}).exec(function(err,document){
+
+    let d = new Date();
+    let now = d.getTime();
+
+    let questionsDue = document.filter(elem => {
+      return elem.due < now;
+    })
+    console.log("Found",questionsDue.length," questions due already")
+    res.send(questionsDue);
+  });
+
+})
+
+app.put("/api/srs",function(req,res){
+  //route used to update due times in SRS database based on correctly or incorrectly answered questions
+
+  DBEntry.update({id:req.body.id},
+    { $set: {due:req.body.due, daysTillDue:req.body.daysTillDue, repetitions:req.body.repetitions}})
+    .catch(err => console.log(err));
+    }
+
+);
+
+app.post("/api/srs", function(req,res) {
   const levelNum = parseInt(req.params.levelnum);
-  console.log("Hit post for q");
+  console.log("Hit post for db insertion");
   console.log(req.body);
 
   let nextId = 0;
   
   //always get current highest question id for that level in the DB so we can add next id
-Question.find({level:levelNum}).sort('-id').exec(function(err, document){
+DBEntry.find({}).sort('-id').exec(function(err, document){
   console.log("Found the latest id doc ",document);
-  nextId = document[0].id +1;
+  if(document.length > 0){
+    nextId = document[0].id +1;
+  }else{
+    nextId = 0;
+  }
   console.log("Next id is",nextId);
+  console.log("creating db entry with due",req.body.due);
 
-  Question.create(
+ DBEntry.create(
         {
           id: nextId,
           prompt:req.body.prompt,
           answer:req.body.answer,
           answered:false,
-          level:req.body.level
+          due:req.body.due,
+          daysTillDue:req.body.daysTillDue,
+          repetitions:req.body.repetitions
+          
         }
       ).then(question => {
         res.json(question);
@@ -116,32 +133,7 @@ Question.find({level:levelNum}).sort('-id').exec(function(err, document){
   
 });
 
-  // Question.find({level:levelNum})
-  // .sort('id')
-  // .exec( function(err, member){
-  //   if(err) console.log(err);
-  //   console.log("Got members",member);
-
-  //   nextId =  member.id;
-  //   console.log("Next id is",nextId);
-
-  //   Question.create(
-  //     {
-  //       id: nextId,
-  //       prompt:req.body.prompt,
-  //       answer:req.body.answer,
-  //       answered:false,
-  //       level:req.body.level
-  //     }
-  //   ).then(question => {
-  //     res.json(question);
-  //   });
-
-
-  // })
-
   
-
 });
 
 app.post('/terminals', function (req, res) {
@@ -215,5 +207,5 @@ if (!port) {
   process.exit(1);
 } else {
   app.listen(port, host);
-  console.log('Evala server listening at http://' + host + ':' + port);
+  console.log('Shell server listening at http://' + host + ':' + port);
 }

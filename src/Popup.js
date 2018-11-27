@@ -36,17 +36,31 @@ export default class Popup extends React.Component {
         });
     }
 
+    handleKey = (event) => {
+        if(event.key === 'Enter'){
+            this.onSubmit();
+        }
+    }
+
     onSubmit = () => {
 
+        let d = new Date();
+        let due = d.getTime();    //as of right now we want to schedule new questions immediately
+        //let due = d.getTime() + 86400000;  //adds exact number of ms in 1 day, wrong on DTS but ok
+        
+        console.log("Due is",due)
         const theBody = {
-            //id: will be determined by server checking next id in DB for the level
+            //this submits a command to a users database, not for custom making levels, rather for SRS mode
             prompt:this.state.prompt,
             answer:this.state.display,
+            answer2:"",
             answered:false,
-            level:this.state.level
+            due:due,
+            daysTillDue:0,
+            repetitions:0
         }
 
-        const theReq = `http://${ HOST }/api/level/1`;
+        const theReq = `http://${ HOST }/api/srs`;
 
         fetch(theReq, {
             body: JSON.stringify(theBody), // data can be `string` or {object}!
@@ -82,13 +96,13 @@ export default class Popup extends React.Component {
         return (
             <div>
                 <div style={style}>Add your command to Database
-                <form>
+                <form onKeyPress={this.handleKey }>
                     <select onChange={this.selectOption}>
                         {this.renderOptions()}
                     </select>
                     <label>Command</label><input onChange={this.onChange('command')} value ={this.state.display} type="text"></input><br/>
                     <label>Prompt</label><input onChange={this.onChange('prompt')} type="text"></input><br/>
-                    <label>Level</label><input onChange={this.onChange('level')} type="text"></input><br/>
+                    
                 <button type="button" onClick={this.props.close}>Close </button>
                 <button type="button" onClick={this.onSubmit}>Submit</button>
                 </form>
