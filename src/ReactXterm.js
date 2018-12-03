@@ -6,6 +6,7 @@ import Prompt from './Prompt';
 import PropTypes from 'prop-types';
 import { Terminal } from 'xterm';
 import TimeDue from './timedue.js'
+import CheckSame from './checkSame.js';
 // import * as attach from 'xterm/lib/addons/attach/attach';
 import * as attach from './addons/attach';
 import * as fit from 'xterm/lib/addons/fit/fit';
@@ -42,36 +43,15 @@ const containerStyle ={
 
 //todo refactor levels elsewhere to not clutter reactxterm
 //also poss to get dynamically from DB but seems just as well to hardcode levels for now
-let levels = []
-let MAX_LEVEL = 31
+const levels = []
+const MAX_LEVEL = 31
+const MAX_DISPLAY = 23
+const MAX = Math.min(MAX_DISPLAY, MAX_LEVEL)
 
-for(let i = 0; i < MAX_LEVEL; i++){
+for(let i = 0; i < MAX; i++){
   levels.push({name:`Level ${i+1}`,number:i+1, finished:false, selected:false})
 }
 
-// const levels = [
-  
-//     {name:"Level 1", number:1, finished:false, selected:false},
-//     {name:"Level 2", number:2, finished:false, selected:false},
-//     {name:"Level 3", number:3, finished:false, selected:false},
-//     {name:"Level 1", number:1, finished:false, selected:false},
-//     {name:"Level 2", number:2, finished:false, selected:false},
-//     {name:"Level 3", number:3, finished:false, selected:false},
-//     {name:"Level 1", number:1, finished:false, selected:false},
-//     {name:"Level 2", number:2, finished:false, selected:false},
-//     {name:"Level 3", number:3, finished:false, selected:false},
-//     {name:"Level 1", number:1, finished:false, selected:false},
-//     {name:"Level 2", number:2, finished:false, selected:false},
-//     {name:"Level 3", number:3, finished:false, selected:false},
-//     {name:"Level 1", number:1, finished:false, selected:false},
-//     {name:"Level 2", number:2, finished:false, selected:false},
-//     {name:"Level 3", number:3, finished:false, selected:false},
-//     {name:"Level 1", number:1, finished:false, selected:false},
-//     {name:"Level 2", number:2, finished:false, selected:false},
-//     {name:"Level 3", number:3, finished:false, selected:false},
-    
-    
-// ]
 
 export default class ReactTerminal extends React.Component {
   constructor(props) {
@@ -88,18 +68,19 @@ export default class ReactTerminal extends React.Component {
       lastEntry:"",
       command: [],
       prompt:"prompt",
-      promptColor:'#8585ad',
+      promptColor:'#202020',
       questions: [],
       levels:levels,
       nextQuestion:0,
-      mode:''
+      mode:'',
+      score:0
     };
   }
 
   componentDidMount() {
     this.term = new Terminal({
       cursorBlink: true,
-      rows: 40,
+      rows: 44,
       fontSize: this.fontSize
     });
 
@@ -115,32 +96,33 @@ export default class ReactTerminal extends React.Component {
     this.term.on('key', (key) => {
       
       let command;
-      console.log("Got key charcode",key.charCodeAt(0))
+      
 
       if( key.charCodeAt(0) === 127){
         //implement backspace textarea input deletion
         let currentText = this.term.textarea.value;
-        console.log("on a backspace remove");
+        
         if(currentText.length > 0){
           currentText = currentText.slice(0,-1);
         }
 
         this.term.textarea.value = currentText;
-        console.log("textarea after slice",this.term.textarea.value);
+        
 
       }
 
       if(key.charCodeAt(0) === 13){
         
-        if(this.term.textarea.value === "next"){
-          console.log('Got a next, here skip next q')
+        if(this.term.textarea.value === "next" && this.state.mode != ""){
+          
           this.setState({nextQuestion:this.state.nextQuestion+1}, this.updatePrompt);
         }
 
-        if(this.term.textarea.value === "hint"){
+        if(this.term.textarea.value === "hint" && this.state.mode!= ""){
           let hint = this.state.questions[this.state.nextQuestion].answer;
           
           this.term.write("  "+hint);
+          this.setState({score:this.state.score -1});
           console.log("Hint state", this.state.questions[this.state.nextQuestion].answer)
         }
 
@@ -277,7 +259,7 @@ export default class ReactTerminal extends React.Component {
       this.setState({promptColor:'red'});
     }
 
-    setTimeout(() => { this.setState({promptColor:'#8585ad'} ) }, 250);
+    setTimeout(() => { this.setState({promptColor:'#202020'} ) }, 250);
   }
 
   handleQuestions = (questionsArray) => {
@@ -311,7 +293,7 @@ export default class ReactTerminal extends React.Component {
       this.setState({prompt:"No questions due for review"},() => {setTimeout(() => this.setState({prompt:"prompt"}), 2000)})
       
     }else{
-      this.setState({questions:questionsArray,mode:'srs'}, this.updatePrompt);
+      this.setState({questions:questionsArray}, () => {this.updatePrompt(); this.setMode("srs")});
     }
 
 
@@ -324,7 +306,7 @@ export default class ReactTerminal extends React.Component {
     if(this.state.questions.length == 0){
       return;
     }
-    console.log("Next question",this.state.nextQuestion," and ",questions.length)
+    //console.log("Next question",this.state.nextQuestion," and ",questions.length)
 
     if(this.state.nextQuestion >= questions.length && questions.length > 0){
       this.setState({prompt:"Level Complete!",questions:[],nextQuestion:0, mode:''});
@@ -346,6 +328,8 @@ export default class ReactTerminal extends React.Component {
   }
 
   checkAnswer(answer){
+
+    if(this.state.mode !== 'levels' && this.state.mode !== 'srs') return;
    
     console.log("Console logging textarea", this.term.textarea.value);
     //answer = answer.replace(pattern," ");
@@ -353,8 +337,11 @@ export default class ReactTerminal extends React.Component {
     let questions = this.state.questions;
     let correct = false;
 
+    let correct1 = questions[this.state.nextQuestion].answer;
+    let correct2 = questions[this.state.nextQuestion].answer2;
 
-    if(answer.trim() === questions[this.state.nextQuestion].answer.trim() || answer.trim() === questions[this.state.nextQuestion].answer2.trim() ){
+    if(CheckSame.checkSame(correct1,answer) || CheckSame.checkSame(correct2,answer)){
+
       correct = true;
       questions[this.state.nextQuestion].answered = true;
       
@@ -362,9 +349,14 @@ export default class ReactTerminal extends React.Component {
         this.updateDue(questions[this.state.nextQuestion], correct)
       }
 
-      this.setState({questions:questions, nextQuestion: this.state.nextQuestion + 1}, this.updatePrompt);
+      this.setState({questions:questions, nextQuestion: this.state.nextQuestion + 1, score:this.state.score + 5}, this.updatePrompt);
     }else{
+      if(this.state.mode === 'levels'){
+        this.setState({score:this.state.score -1});
+      }
+
       if(this.state.mode === 'srs'){
+        
         this.updateDue(questions[this.state.nextQuestion], correct)
       }
     }
@@ -414,8 +406,28 @@ export default class ReactTerminal extends React.Component {
     this.term.focus();
   }
 
+  locked = () => {
+
+    let oldPrompt = this.state.prompt;
+    console.log("About to reset the prompt herenow")
+
+    this.setState({prompt:"Locked"}, () => { setTimeout(() => this.setState({prompt:oldPrompt}), 500)})
+  }
+
   setMode = (mode) => {
+    if(this.state.mode === mode){
+      console.log("Attempting to set state to",mode, " it is already in");
+    }
+    if(this.state.questions.length === 0){
+      console.log("Attempting to review 0 questions");
+      return;
+    }
+
     this.setState({mode:mode});
+  }
+
+  completed(){
+    return {done: this.state.nextQuestion, total:this.state.questions.length }
   }
  
   render() {
@@ -427,7 +439,7 @@ export default class ReactTerminal extends React.Component {
         <div id={"terminal-container"}  style={{
         float:'left', top: 0, left: 0, width: '80', height: '100%'
         }}></div>
-        <ControlBox setmode={this.setMode} focus={this.focusTerm} questionsCall={this.handleQuestions} words={this.state.levels}/>
+        <ControlBox completed={this.completed()} score={this.state.score} locked={this.locked} levels={this.state.levels} setmode={this.setMode} focus={this.focusTerm} questionsCall={this.handleQuestions} words={this.state.levels}/>
     </div>
     )
   }

@@ -115,6 +115,7 @@ DBEntry.find({}).sort('-id').exec(function(err, document){
   }
   console.log("Next id is",nextId);
   console.log("creating db entry with due",req.body.due);
+  console.log("With answer2",req.body.answer2)
 
  DBEntry.create(
         {
@@ -122,6 +123,7 @@ DBEntry.find({}).sort('-id').exec(function(err, document){
           prompt:req.body.prompt,
           answer:req.body.answer,
           answered:false,
+          answer2:"@@@@",
           due:req.body.due,
           daysTillDue:req.body.daysTillDue,
           repetitions:req.body.repetitions

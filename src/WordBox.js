@@ -12,6 +12,11 @@ const style = {
 const PORT = '3001';
 const HOST = `127.0.0.1:${ PORT }`;
 
+const titleStyle ={
+    border:'2px solid black',
+    background: '#e7e4e4'
+}
+
 export default class WordBox extends React.Component {
     constructor(props){
         super(props);
@@ -52,11 +57,13 @@ export default class WordBox extends React.Component {
     render(){
         
         return (
-            <div style={style}><span style={ {border:'2px solid black'} }>Commands</span>
-            <ul>
+            <div style={style}><div style={ titleStyle }>Commands</div>
+            <ul style={{width:"80%",margin:"auto", paddingInlineStart:"0"}}>
             {this.renderWords()}
-            </ul>
-            <p onClick={this.handleClick} style={{position:'absolute',bottom:'0'}}>Review Commands</p>
+            </ul >
+            <div style={{position:'absolute',bottom:'0', border:'2px solid black',background:'rgb(231, 228, 228)'}}>
+                <p onClick={this.handleClick} >Review Commands</p>
+            </div>
             </div>
         );
     }

@@ -14,6 +14,18 @@ const style = {
     zIndex: '100'
     }
 
+const selectStyle = {
+    margin: '10px',
+    padding: '10px',
+    fontSize: '16px'
+}
+
+const inputStyle = {
+    padding:"5px",
+    fontSize: '16px'
+}
+
+
 export default class Popup extends React.Component {
     constructor(props){
         super(props)
@@ -87,26 +99,29 @@ export default class Popup extends React.Component {
     }
 
     selectOption= (event) => {
-        console.log("Selected, rendering")
+        
         this.setState({display: event.target.value});
     }
 
     render(){
 
         return (
-            <div>
-                <div style={style}>Add your command to Database
-                <form onKeyPress={this.handleKey }>
-                    <select onChange={this.selectOption}>
-                        {this.renderOptions()}
-                    </select>
-                    <label>Command</label><input onChange={this.onChange('command')} value ={this.state.display} type="text"></input><br/>
-                    <label>Prompt</label><input onChange={this.onChange('prompt')} type="text"></input><br/>
-                    
-                <button type="button" onClick={this.props.close}>Close </button>
-                <button type="button" onClick={this.onSubmit}>Submit</button>
-                </form>
-                </div>;
+            <div style={style}>
+                <div >
+                    <p>Add your command to Database</p>
+                    <div >
+                        <form onKeyPress={this.handleKey }>
+                            <select style={selectStyle} onChange={this.selectOption}>
+                                {this.renderOptions()}
+                            </select>
+                            <label>Command</label><input style={inputStyle} onChange={this.onChange('command')} value ={this.state.display} type="text"></input><br/>
+                            <label>Prompt</label><input style={inputStyle} onChange={this.onChange('prompt')} type="text" size="200px"></input><br/>
+                            
+                        <button type="button" onClick={this.props.close}>Close </button>
+                        <button type="button" onClick={this.onSubmit}>Submit</button>
+                        </form>
+                    </div>
+                </div>
                 
             </div>
         )
