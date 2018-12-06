@@ -67,7 +67,7 @@ export default class ReactTerminal extends React.Component {
     this.state = {
       lastEntry:"",
       command: [],
-      prompt:"prompt",
+      prompt:":",
       promptColor:'#202020',
       questions: [],
       levels:levels,
@@ -414,6 +414,12 @@ export default class ReactTerminal extends React.Component {
     this.setState({prompt:"Locked"}, () => { setTimeout(() => this.setState({prompt:oldPrompt}), 500)})
   }
 
+  stop = () => {
+    console.log("Stopping reviewing")
+    //to quit a level or srs reviewing
+    this.setState({mode:"",questions:"",nextQuestion:0,prompt:":"})
+  }
+
   setMode = (mode) => {
     if(this.state.mode === mode){
       console.log("Attempting to set state to",mode, " it is already in");
@@ -435,7 +441,7 @@ export default class ReactTerminal extends React.Component {
     return (
       <div style={containerStyle}>
         <Prompt color={this.state.promptColor} prompt={this.state.prompt}/>
-        <WordBox focus={this.focusTerm} setmode={this.setMode} questionsCall={this.handleSRS} lastEntry={this.state.lastEntry} words={this.state.command}/>
+        <WordBox stopReview={this.stop} mode={this.state.mode} completed={this.completed()} focus={this.focusTerm} setmode={this.setMode} questionsCall={this.handleSRS} lastEntry={this.state.lastEntry} words={this.state.command}/>
         <div id={"terminal-container"}  style={{
         float:'left', top: 0, left: 0, width: '80', height: '100%'
         }}></div>

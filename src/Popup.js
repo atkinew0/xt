@@ -108,17 +108,19 @@ export default class Popup extends React.Component {
         return (
             <div style={style}>
                 <div >
-                    <p>Add your command to Database</p>
+                    <h3>Add command to Database</h3>
                     <div >
                         <form onKeyPress={this.handleKey }>
+                            
+                            <label>Command </label><input style={inputStyle} onChange={this.onChange('command')} value ={this.state.display} type="text"></input><br/>
+                            <label>Prompt </label><input style={inputStyle} onChange={this.onChange('prompt')} type="text" size="200px"></input><br/>
                             <select style={selectStyle} onChange={this.selectOption}>
                                 {this.renderOptions()}
                             </select>
-                            <label>Command</label><input style={inputStyle} onChange={this.onChange('command')} value ={this.state.display} type="text"></input><br/>
-                            <label>Prompt</label><input style={inputStyle} onChange={this.onChange('prompt')} type="text" size="200px"></input><br/>
-                            
-                        <button type="button" onClick={this.props.close}>Close </button>
-                        <button type="button" onClick={this.onSubmit}>Submit</button>
+                        <div > 
+                        <button style={{fontSize:"16px"}} type="button" onClick={this.props.close}>Close </button>
+                        <button style={{fontSize:"16px"}} type="button" onClick={this.onSubmit}>Submit</button>
+                        </div>
                         </form>
                     </div>
                 </div>
